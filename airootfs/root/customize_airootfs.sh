@@ -14,27 +14,13 @@ useradd $USER --create-home -U
 echo "$USER ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
 echo "KEYMAP=fr" > /etc/vconsole.conf
 
-# If not in French, Gnome will display a popup on startup to change/create those filenames
-pushd /home/$USER
-mkdir Bureau
-mkdir Téléchargements
-mkdir Modèles
-mkdir Musique
-mkdir Images
-mkdir Vidéos
-
-rm -rf Desktop
-rm -rf Downloads
-rm -rf Templates
-rm -rf Music
-rm -rf Pictures
-rm -rf Videos
-popd
+# This one is tricky. Changing GNOME settings reguire using gsettings, which uses dconf, and it needs dbus lauched. Yet, to run `gsettings` commands successfully, a dbus daemon needs to be started, but we are in a chroot. This is a workaround to start dbus in this environment, to launch a set of gsettings commands.
+su $USER -c "dbus-launch --exit-with-session gsettings set org.gnome.desktop.input-sources sources \"[('xkb', 'fr')]\""
 
 echo "# GDM configuration storage
 
 [daemon]
-AutomaticLogin=archy
+AutomaticLogin=$USER
 AutomaticLoginEnable=True
 
 [security]
@@ -48,7 +34,7 @@ AutomaticLoginEnable=True
 
 sed -i '1s/^/auth sufficient pam_succeed_if.so user ingroup nopasswdlogin\n/' /etc/pam.d/gdm-password
 groupadd nopasswdlogin
-usermod -a -G nopasswdlogin archy
+usermod -a -G nopasswdlogin $USER
 
 
 usermod -s /usr/bin/zsh root
