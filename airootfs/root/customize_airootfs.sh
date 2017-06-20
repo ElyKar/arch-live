@@ -17,6 +17,9 @@ echo "KEYMAP=fr" > /etc/vconsole.conf
 # This one is tricky. Changing GNOME settings reguire using gsettings, which uses dconf, and it needs dbus lauched. Yet, to run `gsettings` commands successfully, a dbus daemon needs to be started, but we are in a chroot. This is a workaround to start dbus in this environment, to launch a set of gsettings commands.
 su $USER -c "dbus-launch --exit-with-session gsettings set org.gnome.desktop.input-sources sources \"[('xkb', 'fr')]\""
 
+# Do not create default directories, we do not want them
+sed -i 's/\(enabled=\)True/\1False/' /etc/xdg/user-dirs.conf
+
 echo "# GDM configuration storage
 
 [daemon]
